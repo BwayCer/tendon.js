@@ -1,0 +1,12 @@
+// deno version: ^2.4.1
+{
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+  },
+  "fmt": {
+    "lineWidth": 79,
+  },
+  "test": {
+    "include": ["./test/deno/*_test.ts"],
+  },
+}
