@@ -6,6 +6,14 @@
   "fmt": {
     "lineWidth": 79,
   },
+  // "compilerOptions": {
+  //   // deno 解釋器時有用, 但 dnt build 時沒用
+  //   "lib": [
+  //     "es2021",
+  //     // "esnext",
+  //     "dom",
+  //   ],
+  // },
   "test": {
     "include": ["./test/deno/*_test.ts"],
   },
