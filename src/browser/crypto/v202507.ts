@@ -58,21 +58,30 @@ export class CryptoAesGcm256 {
   }
 
   // 推導混合鹽的金鑰
-  static deriveSaltedKey(
+  static async deriveSaltedKey(
     key: CryptoKey,
     hash: DeriveSaltedKeyHash,
     salt: Uint8Array,
   ): Promise<CryptoKey> {
+    const origKeyBuf = await this.keyToBuffer(key);
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      origKeyBuf,
+      "HKDF",
+      false,
+      ["deriveKey"],
+    );
     // 類似附註功能, 可留白
     // same as textEnc.encode("")
     const info = new Uint8Array();
-    return crypto.subtle.deriveKey(
+    const newKey = await crypto.subtle.deriveKey(
       { name: "HKDF", hash, salt, info },
-      key,
+      keyMaterial,
       { name: "AES-GCM", length: 256 },
       true,
       ["encrypt", "decrypt"],
     );
+    return newKey;
   }
 
   // 產生 AES 金鑰
