@@ -438,68 +438,69 @@ if (isVerificationEnabled) {
 }
 
 // ## 應用
+
+async function runAvailabilityCheck(
+  mode: "encrypt" | "sign",
+  cryptoOptions: string[][],
+  isPasswordKey = false,
+) {
+  for (const cryptoOption of cryptoOptions) {
+    // ## 創建
+
+    const cryptoSimple = new CryptoSimple(
+      ...cryptoOption as CryptoConfigOption[],
+    );
+    console.log(
+      "crypto mode name: " + cryptoSimple.name(mode as "encrypt" | "sign"),
+    );
+
+    // ## 開始驗證
+
+    switch (mode) {
+      case "encrypt": {
+        let keyPsss!: CryptoKey | string;
+        if (isPasswordKey) {
+          keyPsss = "my very long string that I want to use";
+        } else {
+          keyPsss = await cryptoSimple.generateEncryptKey();
+        }
+
+        await simple_encrypt_action(
+          cryptoSimple,
+          keyPsss,
+          plainShortText,
+        );
+        break;
+      }
+      case "sign": {
+        const randKey = await cryptoSimple.generateSignKey();
+        await simple_sign_action(
+          cryptoSimple,
+          randKey,
+          plainShortText,
+        );
+        break;
+      }
+    }
+  }
+}
+
 if (isAvailabilityCheckEnabled) {
   Deno.test(async function simple_byKey_test() {
-    const encryptOptions = [
+    await runAvailabilityCheck("encrypt", [
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
       ["AesGcm256", "HkdfSha256", "TransformHex"],
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformBase64"],
       ["AesGcm256", "HkdfSha256", "TransformBase64"],
-    ];
-    const signOptions = [
+    ]);
+    await runAvailabilityCheck("sign", [
       ["HmacSha512", "Pbkdf2Sha256e6", "TransformHex"],
-    ];
-    async function runAvailabilityCheck(
-      mode: "encrypt" | "sign",
-      cryptoOptions: string[][],
-    ) {
-      for (const cryptoOption of cryptoOptions) {
-        // ## 創建
-
-        const cryptoSimple = new CryptoSimple(
-          ...cryptoOption as CryptoConfigOption[],
-        );
-        console.log(
-          "crypto mode name: " + cryptoSimple.name(mode as "encrypt" | "sign"),
-        );
-
-        // ## 準備
-
-        let generateKey!: "generateEncryptKey" | "generateSignKey";
-        let simple_action!:
-          | typeof simple_encrypt_action
-          | typeof simple_sign_action;
-        switch (mode) {
-          case "encrypt":
-            generateKey = "generateEncryptKey";
-            simple_action = simple_encrypt_action;
-            break;
-          case "sign":
-            generateKey = "generateSignKey";
-            simple_action = simple_sign_action;
-            break;
-        }
-
-        // ## 開始驗證
-
-        const privateKey = await cryptoSimple[generateKey]();
-        await simple_action(
-          cryptoSimple,
-          privateKey,
-          plainShortText,
-        );
-      }
-    }
-    await runAvailabilityCheck("encrypt", encryptOptions); 
-    await runAvailabilityCheck("sign", signOptions); 
+    ]);
   });
 
-  Deno.test(async function simple_AesGcm256_Pbkdf2Sha256e6_byPassword_test() {
-    const cryptoSimple = new CryptoSimple("AesGcm256", "Pbkdf2Sha256e6");
-    console.log("crypto full name: " + cryptoSimple.name());
-    console.log("crypto mode name: " + cryptoSimple.name("encrypt"));
-
-    const password = "my very long string that I want to use";
-    await simple_encrypt_action(cryptoSimple, password, plainText);
+  Deno.test(async function simple_byPassword_test() {
+    await runAvailabilityCheck("encrypt", [
+      ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
+    ], true);
   });
 }
