@@ -129,6 +129,8 @@ if (isVerificationEnabled) {
   // AesGcm256,  HkdfSha256,     TransformHex
   // HmacSha256, Pbkdf2Sha256e6, TransformHex
   // HmacSha512, Pbkdf2Sha256e6, TransformHex
+  // HmacSha256, HkdfSha256,     TransformHex
+  // HmacSha512, HkdfSha256,     TransformHex
   // AesGcm256,  Pbkdf2Sha256e6, TransformBase64
   // AesGcm256,  HkdfSha256,     TransformBase64
   // HmacSha512, Pbkdf2Sha256e6, TransformBase64
@@ -167,6 +169,22 @@ if (isVerificationEnabled) {
             "411f2d3f117325c286014f11011d93f9128c66ad8c1fc6f15adf68056b393c4d6624cc1f495f2e602867877a84dd137e3300e056d37b3a8edc36b654682d5e14dc8faf48fcf20bfc84b82d1fccf7470272d3f06af989098130b02df8db1a458e36c7866a30ec2d05173ae3a300260d64023aac101353bfa0570b079e56f1dd0d",
           ciphertext:
             "8ef819b8cf5ca92d7df339901f5557860206dc3cac82da78c6fcfca0762376f3832183d47b22acb0a4ee6f8be5e6f9a1b71f0522b02e2093db16e91f685ee445",
+        },
+        {
+          mode: "sign",
+          inputArgs: ["HmacSha256", "HkdfSha256", "TransformHex"],
+          keyText:
+            "9d6af153a86208080fb7cee2e020630070f10434600144dd67d93c7d40a4c7be17720639d8041d72093f152c1a3075c3ead17edbc32af1c77f90a819f85b417c",
+          ciphertext:
+            "3daf62af40bc293bf0911fa93c713485e50519aecce3675095eb26adab8a739c",
+        },
+        {
+          mode: "sign",
+          inputArgs: ["HmacSha512", "HkdfSha256", "TransformHex"],
+          keyText:
+            "8dc66c8d1f73593877f60c63f6009130b64a3df90bae022d45eb08fbe95098d96bd896230ce8699a2ee56a91e4c13f4e170c6f307b7aae7ac4e3f84bf0b63959f0f82d7692092204ff76c270e1e2ffb1c987a94d8288431a74d0c2e86203c9442d2c81fef7e8e3844619cef549248a1cfbea768fdaf1e3e86c16ed314e22babe",
+          ciphertext:
+            "4e1be02e31fb972f1740d15bb3209a66dbd8a2c3e04881b4e087af010c9416512ee5737b7bd930196f4699ef53cb36ad53727f75e1d36d2a7b9bb09960ea8c59",
         },
         {
           mode: "encrypt",
@@ -292,6 +310,7 @@ if (isVerificationEnabled) {
 
   // AesGcm256,  Pbkdf2Sha256e6, TransformHex
   // AesGcm256,  HkdfSha256,     TransformHex
+  // HmacSha256, HkdfSha256,     TransformHex
   // HmacSha512, HkdfSha256,     TransformHex
   Deno.test(
     "驗證派生金鑰是否匹配",
@@ -321,6 +340,17 @@ if (isVerificationEnabled) {
             "63b64f282042b46e18e925533ecf06e0395fc84123f0b864cb9e0d24b31a1e37",
             "64469e4100af0646c28a94ab24479a447b2bc3b341f4307a1e72974aa2716293",
             "173a08010a88a833e3d49900976680628b10c51bfd653263ffa044a2d9140605",
+          ],
+        },
+        {
+          "mode": "sign",
+          "inputArgs": ["HmacSha256", "HkdfSha256", "TransformHex"],
+          "seedKeyTxt":
+            "a911b7345cb2d38bde77182ffb4ed31a712040f9c8019416c0294ffd9bb48284962dc9b21eee6d646ef8640b7c38f3cfa95c48e4d38552a83a71162402f147b6",
+          "verifyKeyTxts": [
+            "49a9b93b4de1d3b8093096a55173b562cccff7b2e914fcc21d1838c093ffca5a2fd76ae76e5a619d57149e79a0a744878245ac724b4cb4b898d4e21b99397c1c",
+            "960b1a0a8fcd14d82771fad7be8e8d01ee91d075bca53a8ca0ccb4c9a8f601683c27821af6b970959feb75cf38802dcfc8c63993e893c6b763b9aa66c6deb52f",
+            "e31b094a2845adfa0bbd93bf251c3a5b7a35047228a5b157440cd2c39f92d97a728b52e9efa14bf2a41256d163c8808c4c5ec99af4b2e19b8c3a89f7401d77a9",
           ],
         },
         {
