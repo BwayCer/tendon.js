@@ -42,11 +42,20 @@ const cryptoConfigList = {
   },
 };
 
-class SimpleBuffer {
-  private _config: CryptoConfig;
+export class SimpleBuffer {
+  config: CryptoConfig;
 
-  constructor(config: CryptoConfig) {
-    this._config = config;
+  constructor(...args: CryptoConfigOption[]) {
+    this.config = Object.assign(
+      {},
+      // default
+      cryptoConfigList.Pbkdf2Sha256e6,
+      cryptoConfigList.AesGcm256,
+      cryptoConfigList.HmacSha256,
+      cryptoConfigList.TransformHex,
+      // user
+      ...args.map((item) => cryptoConfigList[item]),
+    );
   }
 
   async exportKey(key: CryptoKey) {
@@ -55,7 +64,7 @@ class SimpleBuffer {
   }
 
   generateEncryptKey() {
-    const { encryptGenerateKey } = this._config;
+    const { encryptGenerateKey } = this.config;
     return crypto.subtle.generateKey(
       encryptGenerateKey[0],
       true,
@@ -64,7 +73,7 @@ class SimpleBuffer {
   }
 
   importEncryptKey(keyBuf: Uint8Array): Promise<CryptoKey> {
-    const { encryptImportKey } = this._config;
+    const { encryptImportKey } = this.config;
     return crypto.subtle.importKey(
       "raw",
       keyBuf,
@@ -82,7 +91,7 @@ class SimpleBuffer {
       deriveImportKey,
       deriveDeriveKeyAlgorithm,
       encryptDeriveKey,
-    } = this._config;
+    } = this.config;
     const keyMaterial = await crypto.subtle.importKey(
       "raw",
       key,
@@ -105,7 +114,7 @@ class SimpleBuffer {
     iv: Uint8Array,
     plainBuf: Uint8Array,
   ) {
-    const { encryptEncryptAlgorithm } = this._config;
+    const { encryptEncryptAlgorithm } = this.config;
     const algorithm = encryptEncryptAlgorithm(iv);
     const encrypted = await crypto.subtle.encrypt(
       algorithm,
@@ -120,7 +129,7 @@ class SimpleBuffer {
     iv: Uint8Array,
     byteArray: Uint8Array,
   ) {
-    const { encryptEncryptAlgorithm } = this._config;
+    const { encryptEncryptAlgorithm } = this.config;
     const algorithm = encryptEncryptAlgorithm(iv);
     const decrypted = await crypto.subtle.decrypt(
       algorithm,
@@ -131,7 +140,7 @@ class SimpleBuffer {
   }
 
   generateSignKey() {
-    const { signGenerateKey } = this._config;
+    const { signGenerateKey } = this.config;
     return crypto.subtle.generateKey(
       signGenerateKey[0],
       true,
@@ -140,7 +149,7 @@ class SimpleBuffer {
   }
 
   importSignKey(keyBuf: Uint8Array): Promise<CryptoKey> {
-    const { signImportKey } = this._config;
+    const { signImportKey } = this.config;
     return crypto.subtle.importKey(
       "raw",
       keyBuf,
@@ -158,7 +167,7 @@ class SimpleBuffer {
       deriveImportKey,
       deriveDeriveKeyAlgorithm,
       signDeriveKey,
-    } = this._config;
+    } = this.config;
     const keyMaterial = await crypto.subtle.importKey(
       "raw",
       key,
@@ -177,13 +186,13 @@ class SimpleBuffer {
   }
 
   async sign(key: CryptoKey, data: Uint8Array) {
-    const { signSign } = this._config;
+    const { signSign } = this.config;
     const signature = await crypto.subtle.sign(signSign[0], key, data);
     return new Uint8Array(signature);
   }
 
   verify(key: CryptoKey, signature: Uint8Array, data: Uint8Array) {
-    const { signSign } = this._config;
+    const { signSign } = this.config;
     return crypto.subtle.verify(signSign[0], key, signature, data);
   }
 
@@ -202,27 +211,16 @@ class SimpleBuffer {
 }
 
 export class Simple {
-  private _simpleBuf: SimpleBuffer;
-  private _config: CryptoConfig;
-  private _bufferToCode: BufferToCode;
-  private _codeToBuffer: CodeToBuffer;
+  protected _simpleBuf: SimpleBuffer;
+  protected _config: CryptoConfig;
+  protected _bufferToCode: BufferToCode;
+  protected _codeToBuffer: CodeToBuffer;
 
   constructor(...args: CryptoConfigOption[]) {
-    const config = Object.assign(
-      {},
-      // default
-      cryptoConfigList.Pbkdf2Sha256e6,
-      cryptoConfigList.AesGcm256,
-      cryptoConfigList.HmacSha256,
-      cryptoConfigList.TransformHex,
-      // user
-      ...args.map((item) => cryptoConfigList[item]),
-    );
-
-    this._simpleBuf = new SimpleBuffer(config);
-    this._config = config;
-    this._bufferToCode = config.bufferToCode;
-    this._codeToBuffer = config.codeToBuffer;
+    this._simpleBuf = new SimpleBuffer(...args);
+    this._config = this._simpleBuf.config;
+    this._bufferToCode = this._config.bufferToCode;
+    this._codeToBuffer = this._config.codeToBuffer;
   }
 
   name(mode?: "encrypt" | "sign"): string {
