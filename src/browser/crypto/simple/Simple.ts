@@ -18,6 +18,7 @@ import {
   deriveHkdfSha256,
   derivePbkdf2Sha256e6,
   encryptAesGcm256,
+  signHmacSha256,
   signHmacSha512,
 } from "./v202507.ts";
 
@@ -27,6 +28,7 @@ const cryptoConfigList = {
   Pbkdf2Sha256e6: derivePbkdf2Sha256e6,
   HkdfSha256: deriveHkdfSha256,
   AesGcm256: encryptAesGcm256,
+  HmacSha256: signHmacSha256,
   HmacSha512: signHmacSha512,
   TransformHex: <CryptoConfigOptional> {
     transformCode: "Hex",
@@ -211,7 +213,7 @@ export class Simple {
       // default
       cryptoConfigList.Pbkdf2Sha256e6,
       cryptoConfigList.AesGcm256,
-      cryptoConfigList.HmacSha512,
+      cryptoConfigList.HmacSha256,
       cryptoConfigList.TransformHex,
       // user
       ...args.map((item) => cryptoConfigList[item]),

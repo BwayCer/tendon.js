@@ -49,6 +49,26 @@ export const encryptAesGcm256: CryptoConfigOptional = {
   encryptEncryptAlgorithm: (iv: Uint8Array) => ({ name: "AES-GCM", iv }),
 };
 
+export const signHmacSha256: CryptoConfigOptional = {
+  signName: "HMAC-SHA-256",
+  signGenerateKey: [
+    { name: "HMAC", hash: "SHA-256" },
+  ],
+  signImportKey: [
+    undefined,
+    undefined,
+    { name: "HMAC", hash: "SHA-256" },
+  ],
+  signDeriveKey: [
+    undefined,
+    undefined,
+    { name: "HMAC", hash: "SHA-256" },
+  ],
+  signSign: [
+    "HMAC",
+  ],
+};
+
 export const signHmacSha512: CryptoConfigOptional = {
   signName: "HMAC-SHA-512",
   signGenerateKey: [
