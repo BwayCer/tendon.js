@@ -125,11 +125,19 @@ if (isPreciseTestEnabled) {
 
 // ## 驗證
 if (isVerificationEnabled) {
+  // AesGcm256,  Pbkdf2Sha256e6, TransformHex
+  // AesGcm256,  HkdfSha256,     TransformHex
+  // HmacSha256, Pbkdf2Sha256e6, TransformHex
+  // HmacSha512, Pbkdf2Sha256e6, TransformHex
+  // AesGcm256,  Pbkdf2Sha256e6, TransformBase64
+  // AesGcm256,  HkdfSha256,     TransformBase64
+  // HmacSha512, Pbkdf2Sha256e6, TransformBase64
   Deno.test(
-    "驗證加解密結果是否匹配",
-    async function simple_verify_encrypt_byKey_test() {
-      const encryptOptions = [
+    "驗證 加解密/簽章 結果是否匹配",
+    async function simple_verify_byKey_test() {
+      const verifyInfos = [
         {
+          mode: "encrypt",
           inputArgs: ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
           keyText:
             "e5e2eee90446eca6c10f0cd1f579fe15e282ab660253ed8954ea802d1356ea9b",
@@ -137,6 +145,7 @@ if (isVerificationEnabled) {
             "c91e30bddb74410d03f8fb32;b3f8bb98d65474a41c558fbd8be89913d984a26e52efcd447340c51a62f79277bbb3dc1e0c539f3aa2a6a608d1",
         },
         {
+          mode: "encrypt",
           inputArgs: ["AesGcm256", "HkdfSha256", "TransformHex"],
           keyText:
             "db4569068ab43dda7f6d7e770490813cb8f43bbb354fc3ec553badee60077543",
@@ -144,46 +153,15 @@ if (isVerificationEnabled) {
             "c30c6a100e984a34136ca2ca;8dace637f0a3c4362c41f6e4f749a86d06e0113feffd53f2bfc9fd6a6636d1e2acae957de6872153ea788732eb",
         },
         {
-          inputArgs: ["AesGcm256", "Pbkdf2Sha256e6", "TransformBase64"],
-          keyText: "CzpG7lw4/pB7SmO2f/lwmwtGAX2hBTiQDdpi8eXJUrU=",
+          mode: "sign",
+          inputArgs: ["HmacSha256", "Pbkdf2Sha256e6", "TransformHex"],
+          keyText:
+            "fe13be0f52a2504b5ba88b90c5214987d3928bd8168944d6d1f90cfa8e5d55f5b096f66249669201d26eccac917969dab39bc66b957283cc3c3a6ce74327c875",
           ciphertext:
-            "AaoGl3Irca7sYnfj;z8KgOhcolNDMY9YSG+dcLnLsG3gzz+QXyfyBDbe+lXhV590lF+UCVA1aFRAW",
+            "43c7b6c6507a41fabb6ff2f9aa213e7bf90fa3c6f9559761f79bed4b92ebe307",
         },
         {
-          inputArgs: ["AesGcm256", "HkdfSha256", "TransformBase64"],
-          keyText: "w2LTu3yqkgk1suLv1z4eedT798hmhxn7dIQ1hT+yOo8=",
-          ciphertext:
-            "FJXA0fvFSDmR20dL;qm2hgrZWJ0zY/djAdzqh/0dzfh3x520bClZuC+H1qcfv1ckn0flYAKXt4JT2",
-        },
-      ];
-      for (const { inputArgs, keyText, ciphertext } of encryptOptions) {
-        const cryptoSimple = new CryptoSimple(
-          ...inputArgs as CryptoConfigOption[],
-        );
-        console.log("crypto full name: " + cryptoSimple.name());
-        console.log("crypto mode name: " + cryptoSimple.name("encrypt"));
-
-        // const privateKey = await cryptoSimple.generateEncryptKey();
-        // await simple_encrypt_action(cryptoSimple, privateKey, plainShortText, true);
-        const importKeyResult = await cryptoSimple.importEncryptKey(keyText);
-        if (!importKeyResult.ok) {
-          assert(importKeyResult.ok, `匯入金鑰錯誤: ${importKeyResult.error}`);
-        }
-        await simple_verify_encrypt_action(
-          cryptoSimple,
-          importKeyResult.value,
-          plainShortText,
-          ciphertext,
-        );
-      }
-    },
-  );
-
-  Deno.test(
-    "驗證簽章結果是否匹配",
-    async function simple_verify_encrypt_byKey_test() {
-      const encryptOptions = [
-        {
+          mode: "sign",
           inputArgs: ["HmacSha512", "Pbkdf2Sha256e6", "TransformHex"],
           keyText:
             "411f2d3f117325c286014f11011d93f9128c66ad8c1fc6f15adf68056b393c4d6624cc1f495f2e602867877a84dd137e3300e056d37b3a8edc36b654682d5e14dc8faf48fcf20bfc84b82d1fccf7470272d3f06af989098130b02df8db1a458e36c7866a30ec2d05173ae3a300260d64023aac101353bfa0570b079e56f1dd0d",
@@ -191,36 +169,130 @@ if (isVerificationEnabled) {
             "8ef819b8cf5ca92d7df339901f5557860206dc3cac82da78c6fcfca0762376f3832183d47b22acb0a4ee6f8be5e6f9a1b71f0522b02e2093db16e91f685ee445",
         },
         {
+          mode: "encrypt",
+          inputArgs: ["AesGcm256", "Pbkdf2Sha256e6", "TransformBase64"],
+          keyText: "CzpG7lw4/pB7SmO2f/lwmwtGAX2hBTiQDdpi8eXJUrU=",
+          ciphertext:
+            "AaoGl3Irca7sYnfj;z8KgOhcolNDMY9YSG+dcLnLsG3gzz+QXyfyBDbe+lXhV590lF+UCVA1aFRAW",
+        },
+        {
+          mode: "encrypt",
+          inputArgs: ["AesGcm256", "HkdfSha256", "TransformBase64"],
+          keyText: "w2LTu3yqkgk1suLv1z4eedT798hmhxn7dIQ1hT+yOo8=",
+          ciphertext:
+            "FJXA0fvFSDmR20dL;qm2hgrZWJ0zY/djAdzqh/0dzfh3x520bClZuC+H1qcfv1ckn0flYAKXt4JT2",
+        },
+        {
+          mode: "sign",
           inputArgs: ["HmacSha512", "Pbkdf2Sha256e6", "TransformBase64"],
           keyText:
             "QxytFFCBiVFW1dGaSbDBxtrnwsW7ISPuXU5YRh6ATD4Q9uOQQiJhMta8nRpfx3F9ZubcdiIZ4t2NtG4kY/8+Unap9IiJIDA7rZt1JGe5GFveVk5KuH2I28cDtYQJQNkGhfgC2ZoEPSAl08FkyehrXDm7wbm+/JKp1chrENoF5Jw=",
           ciphertext:
             "Z/yXZ8odJvECaT4g8T+2BgBvVAGmZDjv3kCdGE6E0Zh/dinS6U/chNzy+gNL6vg9dMLKXIbTNtNn2Zep9aV+5w==",
         },
+        // {
+        //   isMake: true,
+        //   mode: "sign",
+        //   inputArgs: ["HmacSha256", "Pbkdf2Sha256e6", "TransformHex"],
+        //   keyText: "",
+        //   ciphertext: "",
+        // },
       ];
-      for (const { inputArgs, keyText, ciphertext } of encryptOptions) {
+      for (const verifyInfo of verifyInfos) {
+        let {
+          // @ts-ignore: 省事
+          isMake,
+        } = verifyInfo;
+        const {
+          mode,
+          inputArgs,
+          keyText,
+          ciphertext,
+        } = verifyInfo;
+
+        // ## 創建
+
         const cryptoSimple = new CryptoSimple(
           ...inputArgs as CryptoConfigOption[],
         );
-        console.log("crypto full name: " + cryptoSimple.name());
-        console.log("crypto mode name: " + cryptoSimple.name("sign"));
-
-        // const privateKey = await cryptoSimple.generateSignKey();
-        // await simple_sign_action(cryptoSimple, privateKey, plainShortText, true);
-        const importKeyResult = await cryptoSimple.importSignKey(keyText);
-        if (!importKeyResult.ok) {
-          assert(importKeyResult.ok, `匯入金鑰錯誤: ${importKeyResult.error}`);
-        }
-        await simple_verify_sign_action(
-          cryptoSimple,
-          importKeyResult.value,
-          plainShortText,
-          ciphertext,
+        console.log(
+          "crypto mode name: " + cryptoSimple.name(mode as "encrypt" | "sign"),
         );
+
+        // ## 準備
+
+        isMake = isMake === true;
+
+        let generateKey!: "generateEncryptKey" | "generateSignKey";
+        let importKey!: "importEncryptKey" | "importSignKey";
+        let simple_action!:
+          | typeof simple_encrypt_action
+          | typeof simple_sign_action;
+        let simple_verify_action!:
+          | typeof simple_verify_encrypt_action
+          | typeof simple_verify_sign_action;
+        switch (mode) {
+          case "encrypt":
+            generateKey = "generateEncryptKey";
+            importKey = "importEncryptKey";
+            simple_action = simple_encrypt_action;
+            simple_verify_action = simple_verify_encrypt_action;
+            break;
+          case "sign":
+            generateKey = "generateSignKey";
+            importKey = "importSignKey";
+            simple_action = simple_sign_action;
+            simple_verify_action = simple_verify_sign_action;
+            break;
+        }
+        const makeVerifyInfo = {
+          mode,
+          inputArgs,
+          keyText: "",
+          ciphertext: "",
+        };
+
+        // ## 開始驗證
+
+        let privateKey;
+        if (isMake) {
+          privateKey = await cryptoSimple[generateKey]();
+          makeVerifyInfo.keyText = await cryptoSimple.exportKey(privateKey);
+        } else {
+          const importKeyResult = await cryptoSimple[importKey](keyText);
+          if (!importKeyResult.ok) {
+            assert(
+              importKeyResult.ok,
+              `匯入金鑰錯誤: ${importKeyResult.error}`,
+            );
+          }
+          privateKey = importKeyResult.value;
+        }
+
+        if (isMake) {
+          console.log(JSON.stringify(makeVerifyInfo, null, 2));
+
+          await simple_action(
+            cryptoSimple,
+            privateKey,
+            plainShortText,
+            true,
+          );
+        } else {
+          await simple_verify_action(
+            cryptoSimple,
+            privateKey,
+            plainShortText,
+            ciphertext,
+          );
+        }
       }
     },
   );
 
+  // AesGcm256,  Pbkdf2Sha256e6, TransformHex
+  // AesGcm256,  HkdfSha256,     TransformHex
+  // HmacSha512, HkdfSha256,     TransformHex
   Deno.test(
     "驗證派生金鑰是否匹配",
     async function simple_verify_derive_test() {
@@ -228,7 +300,7 @@ if (isVerificationEnabled) {
         "aa283fb8465990e5ec6e46a1da66b6e5",
       );
 
-      const encryptOptions = [
+      const verifyInfos = [
         {
           mode: "encrypt",
           inputArgs: ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
@@ -263,23 +335,27 @@ if (isVerificationEnabled) {
           ],
         },
         // {
+        //   isMake: true,
         //   mode: "encrypt",
-        //   // generateKey: "generateEncryptKey",
         //   inputArgs: ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
         //   seedKeyTxt: "",
         //   verifyKeyTxts: [],
         // },
       ];
-      for (
+      for (const verifyInfo of verifyInfos) {
+        let {
+          // @ts-ignore: 省事
+          isMake,
+        } = verifyInfo;
         const {
           mode,
-          // @ts-ignore: 省事
-          generateKey,
           inputArgs,
           seedKeyTxt,
           verifyKeyTxts,
-        } of encryptOptions
-      ) {
+        } = verifyInfo;
+
+        // ## 創建
+
         const cryptoSimple = new CryptoSimple(
           ...inputArgs as CryptoConfigOption[],
         );
@@ -287,19 +363,41 @@ if (isVerificationEnabled) {
           "crypto mode name: " + cryptoSimple.name(mode as "encrypt" | "sign"),
         );
 
-        // 以 seedKeyTxt === null 為訊號作為開啟製作資料的判斷
-        const isMakeInfo = generateKey !== undefined;
-        const loopTimes = isMakeInfo ? 7 : verifyKeyTxts.length;
+        // ## 準備
+
+        isMake = isMake === true;
+        const loopTimes = isMake ? 3 : verifyKeyTxts.length;
+
+        let generateKey!: "generateEncryptKey" | "generateSignKey";
+        let importKey!: "importEncryptKey" | "importSignKey";
+        let deriveKey!: "deriveEncryptKey" | "deriveSignKey";
+        switch (mode) {
+          case "encrypt":
+            generateKey = "generateEncryptKey";
+            importKey = "importEncryptKey";
+            deriveKey = "deriveEncryptKey";
+            break;
+          case "sign":
+            generateKey = "generateSignKey";
+            importKey = "importSignKey";
+            deriveKey = "deriveSignKey";
+            break;
+        }
+        const makeVerifyInfo = {
+          mode,
+          inputArgs,
+          seedKeyTxt: "",
+          verifyKeyTxts: [] as string[],
+        };
+
+        // ## 開始驗證
 
         let seedKey;
-        if (isMakeInfo) {
-          // @ts-ignore: 省事
+        if (isMake) {
           seedKey = await cryptoSimple[generateKey]();
-          console.log("種子金鑰: " + await cryptoSimple.exportKey(seedKey));
+          makeVerifyInfo.seedKeyTxt = await cryptoSimple.exportKey(seedKey);
         } else {
-          const importKeyResult = await cryptoSimple.importEncryptKey(
-            seedKeyTxt,
-          );
+          const importKeyResult = await cryptoSimple[importKey](seedKeyTxt);
           if (!importKeyResult.ok) {
             assert(
               importKeyResult.ok,
@@ -311,10 +409,7 @@ if (isVerificationEnabled) {
 
         let endkey = seedKey;
         for (let idx = 0; idx < loopTimes; idx++) {
-          const deriveKeyResult = await cryptoSimple.deriveEncryptKey(
-            endkey,
-            salt,
-          );
+          const deriveKeyResult = await cryptoSimple[deriveKey](endkey, salt);
           if (!deriveKeyResult.ok) {
             assert(
               deriveKeyResult.ok,
@@ -324,11 +419,17 @@ if (isVerificationEnabled) {
           endkey = deriveKeyResult.value;
 
           const endkeyTxt = await cryptoSimple.exportKey(endkey);
-          if (isMakeInfo) {
-            console.log(`第 ${idx} 次派生金鑰: ${endkeyTxt}`);
+          if (isMake) {
+            makeVerifyInfo.verifyKeyTxts.push(endkeyTxt);
           } else {
             assertEquals(endkeyTxt, verifyKeyTxts[idx], "派生金鑰不匹配");
           }
+        }
+
+        // ## 如果有需要製作材料
+
+        if (isMake) {
+          console.log(JSON.stringify(makeVerifyInfo, null, 2));
         }
       }
     },
@@ -337,23 +438,59 @@ if (isVerificationEnabled) {
 
 // ## 應用
 if (isAvailabilityCheckEnabled) {
-  Deno.test(async function simple_encrypt_byKey_test() {
+  Deno.test(async function simple_byKey_test() {
     const encryptOptions = [
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
       ["AesGcm256", "HkdfSha256", "TransformHex"],
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformBase64"],
       ["AesGcm256", "HkdfSha256", "TransformBase64"],
     ];
-    for (const inputArgs of encryptOptions) {
-      const cryptoSimple = new CryptoSimple(
-        ...inputArgs as CryptoConfigOption[],
-      );
-      console.log("crypto full name: " + cryptoSimple.name());
-      console.log("crypto mode name: " + cryptoSimple.name("encrypt"));
+    const signOptions = [
+      ["HmacSha512", "Pbkdf2Sha256e6", "TransformHex"],
+    ];
+    async function runAvailabilityCheck(
+      mode: "encrypt" | "sign",
+      cryptoOptions: string[][],
+    ) {
+      for (const cryptoOption of cryptoOptions) {
+        // ## 創建
 
-      const privateKey = await cryptoSimple.generateEncryptKey();
-      await simple_encrypt_action(cryptoSimple, privateKey, plainText);
+        const cryptoSimple = new CryptoSimple(
+          ...cryptoOption as CryptoConfigOption[],
+        );
+        console.log(
+          "crypto mode name: " + cryptoSimple.name(mode as "encrypt" | "sign"),
+        );
+
+        // ## 準備
+
+        let generateKey!: "generateEncryptKey" | "generateSignKey";
+        let simple_action!:
+          | typeof simple_encrypt_action
+          | typeof simple_sign_action;
+        switch (mode) {
+          case "encrypt":
+            generateKey = "generateEncryptKey";
+            simple_action = simple_encrypt_action;
+            break;
+          case "sign":
+            generateKey = "generateSignKey";
+            simple_action = simple_sign_action;
+            break;
+        }
+
+        // ## 開始驗證
+
+        const privateKey = await cryptoSimple[generateKey]();
+        await simple_action(
+          cryptoSimple,
+          privateKey,
+          plainShortText,
+        );
+      }
     }
+    await runAvailabilityCheck("encrypt", encryptOptions); 
+    await runAvailabilityCheck("sign", signOptions); 
   });
 
   Deno.test(async function simple_AesGcm256_Pbkdf2Sha256e6_byPassword_test() {
@@ -363,14 +500,5 @@ if (isAvailabilityCheckEnabled) {
 
     const password = "my very long string that I want to use";
     await simple_encrypt_action(cryptoSimple, password, plainText);
-  });
-
-  Deno.test(async function simple_HmacSha512_Pbkdf2Sha256e6_test() {
-    const cryptoSimple = new CryptoSimple("HmacSha512", "Pbkdf2Sha256e6");
-    console.log("crypto full name: " + cryptoSimple.name());
-    console.log("crypto mode name: " + cryptoSimple.name("sign"));
-
-    const privateKey = await cryptoSimple.generateSignKey();
-    await simple_sign_action(cryptoSimple, privateKey, plainText);
   });
 }
