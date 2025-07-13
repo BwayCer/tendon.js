@@ -1,19 +1,16 @@
 import { Result } from "../../../types/strongLang.ts";
 import { generateSalt } from "../base.ts";
 import {
-  base64ToBuffer,
-  bufferToBase64,
   BufferToCode,
-  bufferToHex,
   bufferToText,
   CodeToBuffer,
   dataToText,
-  hexToBuffer,
   textToBuffer,
   textToData,
 } from "../utils.ts";
-import type { CryptoConfig, CryptoConfigOptional } from "./simple.d.ts";
+import type { CryptoConfig } from "./simple.d.ts";
 
+import { transformBase64, transformHex } from "./transformConfig.ts";
 import {
   deriveHkdfSha256,
   derivePbkdf2Sha256e6,
@@ -30,32 +27,30 @@ const cryptoConfigList = {
   AesGcm256: encryptAesGcm256,
   HmacSha256: signHmacSha256,
   HmacSha512: signHmacSha512,
-  TransformHex: <CryptoConfigOptional> {
-    transformCode: "Hex",
-    bufferToCode: bufferToHex,
-    codeToBuffer: hexToBuffer,
-  },
-  TransformBase64: <CryptoConfigOptional> {
-    transformCode: "Base64",
-    bufferToCode: bufferToBase64,
-    codeToBuffer: base64ToBuffer,
-  },
+  TransformHex: transformHex,
+  TransformBase64: transformBase64,
 };
+
+export function createCryptoConfig(
+  cryptoConfigOptions: CryptoConfigOption[],
+): CryptoConfig {
+  return Object.assign(
+    {},
+    // default
+    cryptoConfigList.Pbkdf2Sha256e6,
+    cryptoConfigList.AesGcm256,
+    cryptoConfigList.HmacSha256,
+    cryptoConfigList.TransformHex,
+    // user
+    ...cryptoConfigOptions.map((item) => cryptoConfigList[item]),
+  );
+}
 
 export class SimpleBuffer {
   config: CryptoConfig;
 
-  constructor(...args: CryptoConfigOption[]) {
-    this.config = Object.assign(
-      {},
-      // default
-      cryptoConfigList.Pbkdf2Sha256e6,
-      cryptoConfigList.AesGcm256,
-      cryptoConfigList.HmacSha256,
-      cryptoConfigList.TransformHex,
-      // user
-      ...args.map((item) => cryptoConfigList[item]),
-    );
+  constructor(config: CryptoConfig) {
+    this.config = config;
   }
 
   async exportKey(key: CryptoKey) {
@@ -217,10 +212,11 @@ export class Simple {
   protected _codeToBuffer: CodeToBuffer;
 
   constructor(...args: CryptoConfigOption[]) {
-    this._simpleBuf = new SimpleBuffer(...args);
-    this._config = this._simpleBuf.config;
-    this._bufferToCode = this._config.bufferToCode;
-    this._codeToBuffer = this._config.codeToBuffer;
+    const config = createCryptoConfig(args);
+    this._simpleBuf = new SimpleBuffer(config);
+    this._config = config;
+    this._bufferToCode = config.bufferToCode;
+    this._codeToBuffer = config.codeToBuffer;
   }
 
   name(mode?: "encrypt" | "sign"): string {
