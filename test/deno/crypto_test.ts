@@ -520,11 +520,19 @@ if (isAvailabilityCheckEnabled) {
     await runAvailabilityCheck("encrypt", [
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformHex"],
       ["AesGcm256", "HkdfSha256", "TransformHex"],
+    ]);
+    await runAvailabilityCheck("sign", [
+      ["HmacSha256", "Pbkdf2Sha256e6", "TransformHex"],
+      ["HmacSha512", "Pbkdf2Sha256e6", "TransformHex"],
+      ["HmacSha256", "HkdfSha256", "TransformHex"],
+      ["HmacSha512", "HkdfSha256", "TransformHex"],
+    ]);
+    await runAvailabilityCheck("encrypt", [
       ["AesGcm256", "Pbkdf2Sha256e6", "TransformBase64"],
       ["AesGcm256", "HkdfSha256", "TransformBase64"],
     ]);
     await runAvailabilityCheck("sign", [
-      ["HmacSha512", "Pbkdf2Sha256e6", "TransformHex"],
+      ["HmacSha512", "Pbkdf2Sha256e6", "TransformBase64"],
     ]);
   });
 
